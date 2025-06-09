@@ -111,7 +111,10 @@ const UserManagementPage = () => {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    console.log('Errores de validación:', newErrors);
+    const isValid = Object.keys(newErrors).length === 0;
+    console.log('Formulario válido:', isValid);
+    return isValid;
   };
 
   const handleChange = (e) => {
@@ -129,7 +132,9 @@ const UserManagementPage = () => {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    console.log('Intentando crear usuario con datos:', form);
     if (!validateForm()) {
+      console.log('Validación fallida en handleCreate.');
       return;
     }
 
@@ -138,6 +143,7 @@ const UserManagementPage = () => {
       resetForm();
       fetchUsers();
       setIsCreateUserDialogOpen(false);
+      console.log('Usuario creado con éxito.');
     } catch (err) {
       console.error('Error al crear usuario:', err.response?.data);
       if (err.response?.data) {
@@ -180,7 +186,8 @@ const UserManagementPage = () => {
     setIsEditDialogOpen(true);
   };
 
-  const handleEdit = async () => {
+  const handleEdit = async (e) => {
+    e.preventDefault();
     if (!validateForm()) {
       return;
     }
@@ -190,9 +197,6 @@ const UserManagementPage = () => {
       if (dataToUpdate.password === '') delete dataToUpdate.password;
       if (dataToUpdate.password_confirm === '') delete dataToUpdate.password_confirm;
 
-      console.log('Editando usuario con ID:', selectedUserId);
-      console.log('Datos a enviar para edición:', dataToUpdate);
-
       await api.put(`/api/users/${selectedUserId}/`, dataToUpdate);
       fetchUsers();
       setIsEditDialogOpen(false);
@@ -200,7 +204,6 @@ const UserManagementPage = () => {
       resetForm();
     } catch (err) {
       console.error('Error al editar usuario:', err.response?.data);
-      console.log('Detalles del error al editar:', err);
       if (err.response?.data) {
         setErrors(err.response.data);
       } else {
@@ -306,6 +309,20 @@ const UserManagementPage = () => {
                   className={`${errors.password ? 'border-destructive' : ''} w-full border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`}
                 />
                 {errors.password && <span className="text-destructive text-xs">{errors.password}</span>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password_confirm" className="text-foreground">Confirmar Contraseña</Label>
+                <Input
+                  id="password_confirm"
+                  name="password_confirm"
+                  type="password"
+                  value={form.password_confirm}
+                  onChange={handleChange}
+                  placeholder="Confirmar Contraseña"
+                  className={`${errors.password_confirm ? 'border-destructive' : ''} w-full border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`}
+                />
+                {errors.password_confirm && <span className="text-destructive text-xs">{errors.password_confirm}</span>}
               </div>
 
               <div className="flex items-center space-x-2">

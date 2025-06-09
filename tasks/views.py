@@ -24,7 +24,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'create':
-            return [AllowAny()]
+            return [permissions.IsAdminUser()]
         return super().get_permissions()
 
     def get_queryset(self):
@@ -33,8 +33,6 @@ class UserViewSet(viewsets.ModelViewSet):
         return User.objects.filter(id=self.request.user.id)
 
     def create(self, request, *args, **kwargs):
-        if not request.user.is_staff and not self.action == 'create':
-            return Response({'error': 'Solo el administrador puede crear usuarios.'}, status=status.HTTP_403_FORBIDDEN)
         return super().create(request, *args, **kwargs)
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
