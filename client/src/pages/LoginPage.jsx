@@ -1,34 +1,35 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../lib/axios';
+import { useAuth } from '../contexts/AuthContext';
 import ThemeToggle from '../components/ThemeToggle';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login, isAdmin } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await api.post('/api/users/login/', {
-        email,
-        password,
-      });
-      localStorage.setItem('token', response.data.access);
-      localStorage.setItem('refreshToken', response.data.refresh);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    setError('');
+    setLoading(true);
 
+    try {
+      const userData = await login(email, password);
+      
       // Redirección según el tipo de usuario
-      console.log(response.data.user);
-      if (response.data.user.is_staff || response.data.user.is_superuser) {
+      if (userData.is_staff || userData.is_superuser) {
         navigate('/admin');
       } else {
         navigate('/tasks');
       }
     } catch (err) {
+      console.error('Error de autenticación:', err);
       setError(err.response?.data?.error || 'Error al iniciar sesión');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,6 +62,7 @@ const LoginPage = () => {
                 placeholder="Correo electrónico"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
               />
             </div>
             <div>
@@ -74,15 +76,17 @@ const LoginPage = () => {
                 placeholder="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
               />
             </div>
           </div>
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
             >
-              Iniciar Sesión
+              {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </button>
           </div>
         </form>
