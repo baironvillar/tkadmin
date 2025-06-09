@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../lib/axios';
 import {
   Table,
   TableHeader,
@@ -16,7 +16,6 @@ const DashboardOverviewPage = () => {
 
   const fetchTasks = async () => {
     try {
-      const token = localStorage.getItem('token');
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const isAdmin = user.is_staff || user.is_superuser;
 
@@ -28,9 +27,7 @@ const DashboardOverviewPage = () => {
       }
       // Si es admin, la 'url' se mantiene como '/api/tasks/' para obtener todas las tareas.
 
-      const res = await axios.get(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get(url);
       setTasks(res.data);
     } catch (err) {
       console.error('Error al cargar tareas:', err);
@@ -40,10 +37,7 @@ const DashboardOverviewPage = () => {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get('/api/users/', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get('/api/users/');
       setUsers(res.data);
     } catch (err) {
       console.error('Error al cargar usuarios:', err);
